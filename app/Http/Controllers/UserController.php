@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -64,7 +67,9 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        //
+        return view('admin.users.edit', [
+            'user' => $user,
+        ]);
     }
 
     /**
@@ -76,7 +81,44 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        //
+
+        if(!$request->password) {
+            $this->validate($request, [
+                'name' => 'required',
+                'email' => [
+                    'required',
+                    Rule::unique('users')->ignore($user->id)
+                ]
+            ]);
+
+        } else {
+            $this->validate($request, [
+                'name' => 'required',
+                'email' => [
+                    'required',
+                    Rule::unique('users')->ignore($user->id)
+                ],
+                'password' => 'required|confirmed|min:8',
+            ]);
+
+            $user->password = bcrypt($request->password);
+
+        }
+
+        $user->name = $request->name;
+        $user->email = $request->email;
+
+        $updated = $user->update();
+
+        if($updated) {
+            if(Auth::user()->id === $user->id) {
+                Session::flash('updated_user', "Your profile has been updated");
+            } else {
+                Session::flash('updated_user', "User {$user->name} profile has been updated");
+            }
+        }
+
+        return redirect()->back();
     }
 
     /**
@@ -87,6 +129,15 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        $deleted = $user->delete();
+
+        if($deleted) {
+            Session::flash('deleted_user', "User {$user->name} has been deleted");
+        } else {
+            Session::flash('deleted_user', "Something went wrong, Please try again.");
+        }
+
+        return redirect('/users');
+
     }
 }

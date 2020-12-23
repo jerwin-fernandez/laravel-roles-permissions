@@ -37274,6 +37274,14 @@ module.exports = function(module) {
 
 __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
 
+$('#deleteModal').on('shown.bs.modal', function (event) {
+  var button = $(event.relatedTarget);
+  var user_id = button.data('user_id');
+  $('#delete_form').attr('action', function () {
+    return $(this).attr('action') + '/users/' + user_id;
+  });
+});
+
 /***/ }),
 
 /***/ "./resources/js/bootstrap.js":
