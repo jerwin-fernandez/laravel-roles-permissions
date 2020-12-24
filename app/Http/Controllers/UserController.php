@@ -32,7 +32,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.users.create');
     }
 
     /**
@@ -43,7 +43,22 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->validate($request, [
+            'name' => 'required',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|confirmed|min:8',
+        ]);
+
+        $user = new User();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = bcrypt($request->password);
+
+        $user->save();
+
+        Session::flash('created_user', "User {$user->name} has been created.");
+
+        return redirect()->back();
     }
 
     /**
@@ -54,6 +69,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
+
         return view('admin.users.show', [
             'user' => $user
         ]);
@@ -82,7 +98,7 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
 
-        if(!$request->password) {
+        if (!$request->password) {
             $this->validate($request, [
                 'name' => 'required',
                 'email' => [
@@ -90,7 +106,6 @@ class UserController extends Controller
                     Rule::unique('users')->ignore($user->id)
                 ]
             ]);
-
         } else {
             $this->validate($request, [
                 'name' => 'required',
@@ -102,16 +117,15 @@ class UserController extends Controller
             ]);
 
             $user->password = bcrypt($request->password);
-
         }
 
-        $user->name = $request->name;
+        $user->nasme = $request->name;
         $user->email = $request->email;
 
         $updated = $user->update();
 
-        if($updated) {
-            if(Auth::user()->id === $user->id) {
+        if ($updated) {
+            if (Auth::user()->id === $user->id) {
                 Session::flash('updated_user', "Your profile has been updated");
             } else {
                 Session::flash('updated_user', "User {$user->name} profile has been updated");
@@ -131,13 +145,12 @@ class UserController extends Controller
     {
         $deleted = $user->delete();
 
-        if($deleted) {
+        if ($deleted) {
             Session::flash('deleted_user', "User {$user->name} has been deleted");
         } else {
             Session::flash('deleted_user', "Something went wrong, Please try again.");
         }
 
         return redirect('/users');
-
     }
 }

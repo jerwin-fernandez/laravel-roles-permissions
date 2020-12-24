@@ -5,6 +5,7 @@
     <div class="card">
         <div class="card-header">
             <strong><i class="fa fa-users"></i> Users</strong>
+            <a href="{{ route('users.create') }}" class="btn btn-primary float-right">Create User</a>
         </div>
         <div class="card-body">
 
